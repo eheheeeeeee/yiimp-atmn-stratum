@@ -1,0 +1,45 @@
+#####################################################
+# Source code from https://codereview.stackexchange.com/questions/55077/small-bash-script-to-sta$
+# Updated by cryptopool.builders-OLD-VERSION for crypto use...
+#####################################################
+
+source /etc/multipool.conf
+source $STORAGE_ROOT/yiimp/.yiimp.conf
+STRATUM_DIR=$STORAGE_ROOT/yiimp/site/stratum
+LOG_DIR=$STORAGE_ROOT/yiimp/site/log
+#!/usr/bin/env bash
+
+doge="screen -dmS doge bash $STRATUM_DIR/run.sh doge.scrypt"
+dogestop="screen -X -S doge quit"
+
+startstop_doge() {
+    cmd=$1
+    case $cmd in
+        stop) $dogestop ;;
+        start) $doge ;;
+        restart)
+            $dogestop
+            sleep 1
+            $doge
+            ;;
+    esac
+}
+
+case "$1" in
+    start|stop|restart) cmd=$1 ;;
+    *)
+        shift
+        servicenames=${@-servicenames}
+        echo "usage: $0 [start|stop|restart] algo"
+        exit 1
+esac
+
+
+shift
+
+for name; do
+    case "$name" in
+    doge) startstop_doge $cmd ;;
+    *) startstop_service $cmd $name ;;
+    esac
+done 
